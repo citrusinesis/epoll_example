@@ -7,24 +7,15 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 
+#include "Socket.h"
+
 #define BUF_SIZE 1024
 #define BACKLOG 8
 #define EPOLL_SIZE 16
 #define PORT 9573
 
-void errorHandling(const char* msg) {
-    perror(msg);
-    exit(1);
-}
-
-void setNonBlockingMode(int fd) {
-    int flag = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flag | O_NONBLOCK);
-}
-
 int main() {
-    int servSock, clntSock;
-    struct sockaddr_in servAddr, clntAddr;
+    Socket servSock, clntSock;
     socklen_t addrSize;
     char buf[BUF_SIZE];
     int len;
@@ -33,25 +24,14 @@ int main() {
     struct epoll_event event;
     int epfd, eventCount;
 
-    servSock = socket(PF_INET, SOCK_STREAM, 0);
-    memset(&servAddr, 0, sizeof servAddr);
-    servAddr.sin_family = AF_INET;
-    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servAddr.sin_port = htons(PORT);
-
-    if (bind(servSock, (struct sockaddr*) &servAddr, sizeof servAddr) < 0) {
-        errorHandling("bind()");
-    }
-    if (listen(servSock, BACKLOG) < 0) {
-        errorHandling("listen()");
-    }
+    if (servSock.start(PORT, BACKLOG) == -1) exit(1);
 
     epfd = epoll_create(EPOLL_SIZE);
     epEvents = new struct epoll_event[EPOLL_SIZE];
 
     event.events = EPOLLIN;
-    event.data.fd = servSock;
-    epoll_ctl(epfd, EPOLL_CTL_ADD, servSock, &event);
+    event.data.fd = servSock.getFD();
+    epoll_ctl(epfd, EPOLL_CTL_ADD, servSock.getFD(), &event);
 
     std::cout << "[*] READY\n";
 
@@ -63,14 +43,14 @@ int main() {
         }
 
         for (int i = 0; i < eventCount; i++) {
-            if (epEvents[i].data.fd == servSock) {
-                addrSize = sizeof clntAddr;
-                clntSock = accept(servSock, (struct sockaddr*) &clntAddr, &addrSize);
-                setNonBlockingMode(clntSock);
+            if (epEvents[i].data.fd == servSock.getFD()) {
+                addrSize = sizeof clntSock.getSockAddrIn();
+                clntSock.setFD(accept(servSock.getFD(), clntSock.getSockAddr(), &addrSize));
+                clntSock.setNonBlockingMode();
                 event.events = EPOLLIN | EPOLLET;
-                event.data.fd = clntSock;
-                epoll_ctl(epfd, EPOLL_CTL_ADD, clntSock, &event);
-                std::cout << "[*] Client Connected: " << clntSock << "\n";
+                event.data.fd = clntSock.getFD();
+                epoll_ctl(epfd, EPOLL_CTL_ADD, clntSock.getFD(), &event);
+                std::cout << "[*] Client Connected: " << clntSock.getFD() << "\n";
             } else {
                 len = read(epEvents[i].data.fd, buf, BUF_SIZE);
                 if (len == 0) {
@@ -84,7 +64,6 @@ int main() {
         }
     }
 
-    close(servSock);
     close(epfd);
     delete epEvents;
     return 0;

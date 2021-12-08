@@ -36,6 +36,10 @@ void Socket::init(const char *ip, int port) {
 
 void Socket::setNonBlockingMode() {
     int flag = fcntl(fd, F_GETFL, 0);
+    if (flag == -1) {
+        perror("fcntl()");
+        return;
+    }
     fcntl(fd, F_SETFL, flag | O_NONBLOCK);
 }
 
@@ -48,7 +52,8 @@ void Socket::releaseNonBlockingMode() {
     fcntl(fd, F_SETFL, oldflag & ~O_NONBLOCK);
 }
 
-int Socket::start(int backlog) {
+int Socket::start(int port, int backlog) {
+    this->init(port);
     if (bind(fd, this->getSockAddr(), sizeof addr) < 0) {
         perror("bind()");
         return -1;
@@ -60,6 +65,7 @@ int Socket::start(int backlog) {
     }
 }
 
-int Socket::start() {
+int Socket::start(const char* ip, int port) {
+    this->init(ip, port);
     return connect(fd, this->getSockAddr(), sizeof addr);
 }
