@@ -6,31 +6,36 @@
 #define EPOLL_EXAMPLE_SOCKET_H
 
 #include <sys/socket.h>
+#include <netinet/in.h>
 
 class Socket {
 private:
-    int fd;
-    struct sockaddr_in *addr;
+    int fd{};
+    struct sockaddr_in addr{};
 
 public:
     Socket();
-    Socket(int fd, sockaddr_in *addr);
+    Socket(int fd, sockaddr_in addr);
     Socket(Socket const &socket);
     ~Socket();
 
-    int getFD() {
-        return fd;
+    const int getFD() {
+        return this->fd;
     }
-    struct sockaddr_in* getSockAddrIn() {
-        return addr;
+    const struct sockaddr_in& getSockAddrIn() {
+        return this->addr;
     }
-    struct sockaddr* getSockAddr() {
-        return (struct sockaddr*)addr;
+    const struct sockaddr* getSockAddr() {
+        return (struct sockaddr*) &addr;
     }
 
+    void init(int port);
+    void init(const char* ip, int port);
     void setNonBlockingMode();
     void releaseNonBlockingMode();
-};
 
+    int start();
+    int start(int backlog);
+};
 
 #endif //EPOLL_EXAMPLE_SOCKET_H
