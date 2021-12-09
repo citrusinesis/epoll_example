@@ -2,8 +2,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 
@@ -15,7 +13,7 @@
 #define PORT 9573
 
 int main() {
-    Socket servSock, clntSock;
+    Socket servSock(PORT), clntSock;
     socklen_t addrSize;
     char buf[BUF_SIZE];
     int len;
@@ -24,7 +22,7 @@ int main() {
     struct epoll_event event;
     int epfd, eventCount;
 
-    if (servSock.start(PORT, BACKLOG) == -1) exit(1);
+    if (servSock.start(BACKLOG) == -1) exit(1);
 
     epfd = epoll_create(EPOLL_SIZE);
     epEvents = new struct epoll_event[EPOLL_SIZE];

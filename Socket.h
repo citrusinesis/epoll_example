@@ -13,16 +13,13 @@ private:
     int fd{};
     struct sockaddr_in addr{};
 
-    void init(int port);
-    void init(const char* ip, int port);
-
 public:
     Socket();
-    Socket(int fd, sockaddr_in addr);
-    Socket(Socket const &socket);
+    explicit Socket(int port);
+    Socket(const char* ip, int port);
     ~Socket();
 
-    const int getFD() {
+    int getFD() {
         return this->fd;
     }
     const struct sockaddr_in& getSockAddrIn() {
@@ -41,8 +38,8 @@ public:
     void setNonBlockingMode();
     void releaseNonBlockingMode();
 
-    int start(const char* ip, int port);
-    int start(int port, int backlog);
+    int start();
+    int start(int backlog);
 };
 
 #endif //EPOLL_EXAMPLE_SOCKET_H
