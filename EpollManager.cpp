@@ -30,7 +30,7 @@ int EpollManager::enrollSocket(Socket socket) {
     epoll_ctl(epfd, EPOLL_CTL_ADD, socket.getFD(), &event);
 }
 void EpollManager::wait(Socket servSock, Routine routine) {
-    int addrSize
+    int addrSize;
     Socket clntSock;
     while(true) {
         int cnt = epoll_wait(epfd, epEvents, size, -1);
