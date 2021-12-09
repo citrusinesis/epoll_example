@@ -50,9 +50,9 @@ int main() {
                 epoll_ctl(epfd, EPOLL_CTL_ADD, clntSock.getFD(), &event);
                 std::cout << "[*] Client Connected: " << clntSock.getFD() << "\n";
             } else {
-                len = read(epEvents[i].data.fd, buf, BUF_SIZE);
+                len = static_cast<std::size_t>(read(epEvents[i].data.fd, buf, BUF_SIZE));
                 if (len == 0) {
-                    epoll_ctl(epfd, EPOLL_CTL_DEL, epEvents[i].data.fd, NULL);
+                    epoll_ctl(epfd, EPOLL_CTL_DEL, epEvents[i].data.fd, nullptr);
                     close(epEvents[i].data.fd);
                     std::cout << "[*] Client Disconnected: " << epEvents[i].data.fd << "\n";
                 } else {

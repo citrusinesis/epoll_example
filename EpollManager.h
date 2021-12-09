@@ -8,10 +8,11 @@
 #include <sys/epoll.h>
 
 #include "Socket.h"
+#include "Routine.h"
 
 class EpollManager {
 private:
-    int epfd{};
+    int epfd{}, size{};
     struct epoll_event event{};
     struct epoll_event *epEvents{};
 
@@ -21,7 +22,7 @@ public:
     ~EpollManager();
 
     int enrollSocket(Socket socket);
-    void wait();
+    void wait(Socket servSock, Routine routine);
 };
 
 
